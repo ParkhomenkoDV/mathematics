@@ -2,7 +2,9 @@ from setuptools import setup, find_packages
 import time
 
 name = 'mathematics'
-version = time.strftime('%Y.%m.%d.%H.%M.%S', time.localtime())
+
+Y, m, d, H, M, S = time.strftime('%Y.%m.%d.%H.%M.%S', time.localtime()).split('.')  # конфликт версии .00.
+version = '.'.join([Y, M, d, f'0{str(int(H) + 1)}'[-2:], f'0{str(int(M) + 1)}'[-2:], f'0{str(int(S) + 1)}'[-2:]])
 
 with open('README.md', 'rt', encoding='utf-8') as file:
     long_description = file.read()
