@@ -97,7 +97,7 @@ def coordinate_intersection_lines(ABC1: tuple | list | np.ndarray,
     return x, y
 
 
-def angle(k1=nan, k2=nan, points=((), (), ())) -> float:
+def angle_between(k1=nan, k2=nan, points=((), (), ())) -> float:
     """Находит острый угол [рад] между прямыми"""
     if all(points):
         p0, p1, p2 = points  # разархивирование точек
