@@ -11,8 +11,14 @@
 pip install --upgrade git+https://github.com/ParkhomenkoDV/mathematics.git@main
 ```
 
+### Go
+```bash
+go get github.com/ParkhomenkoDV/mathematics
+```
+
 ## Requirements
 
+### Python
 - `numpy` — для численных вычислений
 - `scipy` — для оптимизации и интегрирования
 
