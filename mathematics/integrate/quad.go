@@ -5,27 +5,33 @@ import (
 	"math"
 )
 
+var (
+	ErrNegativeLimit = errors.New("limit must be positive")
+	ErrMaxRecursion  = errors.New("maximum recursion depth exceeded")
+)
+
 // adaptiveSimpson computes the definite integral of f from a to b using adaptive Simpson's rule.
 // It returns (integral, error estimate, number of evaluations, error).
-func adaptiveSimpson(f func(float64) float64, a, b, epsabs, epsrel float64, limit int) (float64, float64, int, error) {
+func adaptiveSimpson(f func(float64) float64, a, b, epsabs, epsrel float64, limit int) (Result, error) {
 	if limit <= 0 {
-		return 0, 0, 0, errors.New("limit must be positive")
+		return Result{}, ErrNegativeLimit
 	}
 	if a == b {
-		return 0, 0, 0, nil
+		return Result{Value: 0, AbsError: 0, NEval: 0}, nil
 	}
 	if a > b {
 		a, b = b, a
 		// Integrate over swapped interval and negate at end
-		val, err, neval, e := adaptiveSimpson(f, a, b, epsabs, epsrel, limit)
-		return -val, err, neval, e
+		result, err := adaptiveSimpson(f, a, b, epsabs, epsrel, limit)
+		result.Value = -result.Value
+		return result, err
 	}
 
 	// Recursive helper
-	var rec func(a, b float64, fa, fm, fb float64, S, eps float64, depth int) (float64, float64, int, error)
-	rec = func(a, b float64, fa, fm, fb float64, S, eps float64, depth int) (float64, float64, int, error) {
+	var rec func(a, b float64, fa, fm, fb float64, S, eps float64, depth int) (Result, error)
+	rec = func(a, b float64, fa, fm, fb float64, S, eps float64, depth int) (Result, error) {
 		if depth <= 0 {
-			return S, math.Abs(S) * eps, 0, errors.New("maximum recursion depth exceeded")
+			return Result{Value: S, AbsError: math.Abs(S) * eps, NEval: 0}, ErrMaxRecursion
 		}
 		// Simpson's rule on whole interval
 		// S = (b-a)/6 * (fa + 4*fm + fb)
@@ -45,20 +51,24 @@ func adaptiveSimpson(f func(float64) float64, a, b, epsabs, epsrel float64, limi
 		tol := epsabs + epsrel*math.Abs(S2)
 		if delta <= tol || depth == 1 {
 			// convergence or forced stop
-			return S2, delta, 3, nil // 3 evaluations: fl, fm, fr (fm already known)
+			return Result{Value: S2, AbsError: delta, NEval: 3}, nil // 3 evaluations: fl, fm, fr (fm already known)
 		}
 		// Recurse on both halves
 		// Evaluate left half
-		valL, errL, nevalL, eL := rec(a, mid, fa, fl, fm, leftSimpson, eps/2, depth-1)
-		if eL != nil {
-			return 0, 0, 0, eL
+		resultL, errL := rec(a, mid, fa, fl, fm, leftSimpson, eps/2, depth-1)
+		if errL != nil {
+			return Result{}, errL
 		}
 		// Evaluate right half
-		valR, errR, nevalR, eR := rec(mid, b, fm, fr, fb, rightSimpson, eps/2, depth-1)
-		if eR != nil {
-			return 0, 0, 0, eR
+		resultR, errR := rec(mid, b, fm, fr, fb, rightSimpson, eps/2, depth-1)
+		if errR != nil {
+			return Result{}, errR
 		}
-		return valL + valR, errL + errR, nevalL + nevalR + 1, nil // +1 for the fm that was already counted? We'll adjust: neval counts evaluations at new points.
+		return Result{
+			Value:    resultL.Value + resultR.Value,
+			AbsError: resultL.AbsError + resultR.AbsError,
+			NEval:    resultL.NEval + resultR.NEval + 1, // +1 for the fm that was already counted? We'll adjust: neval counts evaluations at new points.
+		}, nil
 	}
 
 	// Initial evaluations
@@ -71,10 +81,11 @@ func adaptiveSimpson(f func(float64) float64, a, b, epsabs, epsrel float64, limi
 	if depth < 1 {
 		depth = 1
 	}
-	val, err, neval, e := rec(a, b, fa, fm, fb, S, 1.0, depth)
-	if e != nil {
-		return 0, 0, 0, e
+	result, err := rec(a, b, fa, fm, fb, S, 1.0, depth)
+	if err != nil {
+		return result, err
 	}
 	// Add initial 3 evaluations (fa, fb, fm)
-	return val, err, neval + 3, nil
+	result.NEval += 3
+	return result, nil
 }

@@ -75,12 +75,12 @@ func TestAdaptiveSimpson(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _, _, err := adaptiveSimpson(tt.f, tt.a, tt.b, tt.epsabs, tt.epsrel, tt.limit)
+			got, err := adaptiveSimpson(tt.f, tt.a, tt.b, tt.epsabs, tt.epsrel, tt.limit)
 			if err != nil {
 				t.Fatalf("adaptiveSimpson failed: %v", err)
 			}
-			if math.Abs(got-tt.want) > tt.tol {
-				t.Errorf("adaptiveSimpson() = %v, want %v (diff %v)", got, tt.want, math.Abs(got-tt.want))
+			if math.Abs(got.Value-tt.want) > tt.tol {
+				t.Errorf("adaptiveSimpson() = %v, want %v (diff %v)", got, tt.want, math.Abs(got.Value-tt.want))
 			}
 		})
 	}
