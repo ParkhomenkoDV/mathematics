@@ -8,7 +8,12 @@ import (
 var ErrZeroDevision = errors.New("zero devision")
 
 // Среднее интегральное.
-func Average(f Func, ranges []Range, args []float64, epsabs, epsrel float64, limit int) (float64, error) {
+func Average(
+	f Func, ranges []Range,
+	args []float64,
+	epsabs, epsrel float64,
+	limit int,
+) (float64, error) {
 	result, err := NQuad(f, ranges, args, epsabs, epsrel, limit)
 	if err != nil {
 		return 0.0, err
