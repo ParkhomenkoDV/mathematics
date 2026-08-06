@@ -9,11 +9,8 @@ const (
 
 type Func func(...float64) float64
 
-// Range is a function that returns the lower and upper bounds for a given dimension
-// based on the current values of outer integration variables and additional arguments.
-type Range [2]float64
+type Range [2]float64 // TODO: func
 
-// Result holds the result of integration.
 type Result struct {
 	Value    float64 // estimated integral
 	AbsError float64 // estimated absolute error

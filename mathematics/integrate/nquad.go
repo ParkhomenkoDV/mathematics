@@ -26,30 +26,29 @@ func NQuad(
 		return Result{}, errors.New("at least one range must be provided")
 	}
 
+	n := len(ranges)
+	total := n + len(args)
+
+	// Один срез, который будет использоваться на всех уровнях рекурсии для уменьшения аллокаций
+	full := make([]float64, total)
+	copy(full[n:], args)
+
 	// Recursive integration function
-	var integrate func(depth int, params []float64) (float64, float64, int, error)
-	integrate = func(depth int, params []float64) (float64, float64, int, error) {
+	var integrate func(depth int) (float64, float64, int, error)
+	integrate = func(depth int) (float64, float64, int, error) {
 		if depth == len(ranges) {
-			// Base case: evaluate integrand at current point
-			fullArgs := append(params, args...)
-			val := f(fullArgs...)
-			return val, 0, 1, nil
+			return f(full...), 0, 1, nil
 		}
 
-		// Determine bounds for this dimension
-		var a, b float64
-		rng := ranges[depth]
-		a, b = rng[0], rng[1]
-
-		// If limits are equal, integral is zero
+		a, b := ranges[depth][0], ranges[depth][1]
 		if a == b {
 			return 0, 0, 0, nil
 		}
 
 		// Define integrand for this dimension: maps x -> integral over remaining dimensions
 		integrand := func(x float64) float64 {
-			newParams := append(params, x)
-			val, _, _, _ := integrate(depth+1, newParams)
+			full[depth] = x
+			val, _, _, _ := integrate(depth + 1)
 			return val
 		}
 
@@ -63,9 +62,9 @@ func NQuad(
 	}
 
 	// Start recursion
-	val, err, neval, e := integrate(0, []float64{})
-	if e != nil {
-		return Result{}, e
+	val, absErr, nEval, err := integrate(0)
+	if err != nil {
+		return Result{}, err
 	}
-	return Result{Value: val, AbsError: err, NEval: neval}, nil
+	return Result{Value: val, AbsError: absErr, NEval: nEval}, nil
 }

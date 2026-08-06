@@ -71,6 +71,15 @@ bench:
 	$(PYTHON_PATH) -m pytest $(BENCH_DIR) -v -s -x -m "benchmark" --benchmark-columns=mean,min,max,stddev,median,rounds,outliers --benchmark-sort=name --benchmark-min-rounds=10
 	go test ./... -bench=. -benchmem -benchtime=1s -count=1
 
+pprof:
+	go test ./... -bench=. -benchmem -benchtime=1s -count=1 -cpuprofile=cpu.out -memprofile=mem.out
+
+cpu: pprof
+	go tool pprof -http=:9000 cpu.out
+
+mem: pprof
+	go tool pprof -http=:9000 mem.out
+
 format:
 	@echo "$(BLUE)Formatting code...$(RESET)"
 	$(PYTHON_PATH) -m black $(SRC_DIR) $(TEST_DIR)
