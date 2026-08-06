@@ -72,7 +72,7 @@ bench:
 	go test ./... -bench=. -benchmem -benchtime=1s -count=1
 
 pprof:
-	go test ./mathematics -bench=. -benchmem -benchtime=1s -count=1 -cpuprofile=cpu.out -memprofile=mem.out
+	go test ./mathematics/integrate -bench=. -benchmem -benchtime=1s -count=1 -cpuprofile=cpu.out -memprofile=mem.out
 
 cpu: pprof
 	go tool pprof -http=:9000 cpu.out
@@ -101,5 +101,6 @@ clean:
 	find . -type d -name ".pytest_cache" -exec rm -r {} +
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name "*.pyo" -delete
+	find . -type f -name "*.out" -delete
 	rm -rf .coverage htmlcov
 	go clean -testcache -modcache
