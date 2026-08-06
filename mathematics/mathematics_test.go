@@ -8,40 +8,40 @@ import (
 func TestLog(t *testing.T) {
 	tests := []struct {
 		name    string
-		a       float64
-		b       float64
+		base    float64
+		x       float64
 		want    float64
 		wantErr bool
 	}{
 		{
 			name:    "a<0",
-			a:       -1,
-			b:       10,
+			base:    -1,
+			x:       10,
 			want:    math.Log(10) / math.Log(-1),
 			wantErr: true,
 		}, {
 			name:    "a=1",
-			a:       1,
-			b:       10,
+			base:    1,
+			x:       10,
 			want:    math.Log(10) / math.Log(1),
 			wantErr: true,
 		}, {
 			name:    "b<0",
-			a:       2,
-			b:       -1,
+			base:    2,
+			x:       -1,
 			want:    math.Log(-1) / math.Log(2),
 			wantErr: true,
 		}, {
 			name:    "ok",
-			a:       2,
-			b:       10,
+			base:    2,
+			x:       10,
 			want:    math.Log(10) / math.Log(2),
 			wantErr: false,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got, gotErr := Log(test.a, test.b)
+			got, gotErr := Log(test.x, test.base)
 			if gotErr != nil {
 				if !test.wantErr {
 					t.Errorf("Log() failed: %v", gotErr)

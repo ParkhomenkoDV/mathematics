@@ -1,5 +1,3 @@
-# Makefile for Python project
-
 # Configuration
 PROJECT_NAME = mathematics
 PYTHON = python3
@@ -8,10 +6,12 @@ VENV_DIR = .venv
 VENV_ACTIVATE = $(VENV_DIR)/bin/activate
 PYTHON_PATH = $(VENV_DIR)/bin/python
 PIP_PATH = $(VENV_DIR)/bin/pip
+
 TEST_DIR = mathematics
+BENCH_DIR = mathematics
 SRC_DIR = mathematics
+
 REQUIREMENTS = requirements.txt
-DEV_REQUIREMENTS = requirements-dev.txt
 
 # Colors
 RED    = \033[0;31m
@@ -21,18 +21,19 @@ BLUE   = \033[0;34m
 RESET  = \033[0m
 
 # Targets
-.PHONY: help venv activate install test lint format clean run
+.PHONY: help venv activate install test bench lint format clean
 
 help:
 	@echo "Available commands:"
 	@echo "  make venv           - Create virtual environment"
-	@echo "  make activate       - Activate virtual environment (prints command)"
-	@echo "  make install        - Install production dependencies"
+	@echo "  make activate       - Print command for activate virtual environment"
+	@echo "  make install        - Install dependences"
 	@echo "  make test           - Run tests"
-	@echo "  make lint           - Run linters (flake8, pylint)"
+	@echo "  make cover          - Run coverage"
 	@echo "  make format         - Format code (black, isort)"
+	@echo "  make lint           - Run linters (flake8, pylint)"
+	@echo "  make doc            - Add documentation"
 	@echo "  make clean          - Clean project"
-	@echo "  make run            - Run main script"
 
 venv:
 	@echo "$(BLUE)Creating virtual environment...$(RESET)"
@@ -45,28 +46,45 @@ activate:
 	@echo "$(BLUE)Run this command to activate virtual environment:$(RESET)"
 	@echo "source $(VENV_ACTIVATE)"
 
+pip:
+	@echo "$(BLUE)Installing pip...$(RESET)"
+	pip install --upgrade pip
+
 install:
-	@echo "$(BLUE)Installing production dependencies...$(RESET)"
+	@echo "$(BLUE)Installing dependencies...$(RESET)"
 	$(PIP_PATH) install --upgrade -r $(REQUIREMENTS)
 	$(PIP_PATH) install --upgrade black flake8 pylint isort pytest pytest-benchmark
+	go get -u ./...
 
 test:
 	@echo "$(BLUE)Running tests...$(RESET)"
 	$(PYTHON_PATH) -m pytest $(TEST_DIR) -v -s -x -m "not benchmark"
+	go test ./... -cover
+
+cover:
+	@echo "$(BLUE)Running coverage...$(RESET)"
+	go test ./... -cover -coverprofile=coverage.out
+	go tool cover -html=coverage.out
 
 bench:
 	@echo "$(BLUE)Running benchmarks...$(RESET)"
-	$(PYTHON_PATH) -m pytest $(BENCH_DIR) -v -s -x -m "benchmark" --benchmark-columns=min,max,mean,stddev,median,rounds,outliers --benchmark-sort=name --benchmark-min-rounds=10
-
-lint:
-	@echo "$(BLUE)Running linters...$(RESET)"
-	$(PYTHON_PATH) -m flake8 $(SRC_DIR) $(TEST_DIR)
-	$(PYTHON_PATH) -m pylint $(SRC_DIR) $(TEST_DIR)
+	$(PYTHON_PATH) -m pytest $(BENCH_DIR) -v -s -x -m "benchmark" --benchmark-columns=mean,min,max,stddev,median,rounds,outliers --benchmark-sort=name --benchmark-min-rounds=10
+	go test ./... -bench=. -benchmem -benchtime=1s -count=1
 
 format:
 	@echo "$(BLUE)Formatting code...$(RESET)"
 	$(PYTHON_PATH) -m black $(SRC_DIR) $(TEST_DIR)
 	$(PYTHON_PATH) -m isort $(SRC_DIR) $(TEST_DIR)
+	go fmt -s -w .
+
+lint:
+	@echo "$(BLUE)Running linters...$(RESET)"
+	$(PYTHON_PATH) -m flake8 $(SRC_DIR) $(TEST_DIR)
+	$(PYTHON_PATH) -m pylint $(SRC_DIR) $(TEST_DIR)
+	go vet ./...
+
+doc:
+	go doc ./...
 
 clean:
 	@echo "$(BLUE)Cleaning project...$(RESET)"
@@ -75,7 +93,4 @@ clean:
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name "*.pyo" -delete
 	rm -rf .coverage htmlcov
-
-run:
-	@echo "$(BLUE)Running project...$(RESET)"
-	$(PYTHON_PATH) $(SRC_DIR)/main.py
+	go clean -testcache -modcache
