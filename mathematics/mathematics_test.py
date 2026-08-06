@@ -22,9 +22,31 @@ class TestDiscriminant:
             (-1, -2, -3, -8),  # Отрицательные коэффициенты (D = 4 - 12 = -8)
         ],
     )
-    def test_discriminant_calculation(self, a, b, c, expected):
+    def test_discriminant(self, a, b, c, expected):
         """Проверка корректности вычислений"""
         assert discriminant(a, b, c) == pytest.approx(expected)
+
+    @pytest.mark.parametrize(
+        "a, b, c",
+        [
+            # Стандартные случаи
+            (1, 5, 6),  # D = 25 - 24 = 1
+            (2, 4, 2),  # D = 16 - 16 = 0
+            (1, 0, -4),  # D = 0 - (-16) = 16
+            (0.5, 3, 2),  # D = 9 - 4 = 5 (дробные коэффициенты)
+            # Крайние значения
+            (1e-10, 2e5, 3e15),  # Очень большие/малые числа
+            (-1, -2, -3),  # Отрицательные коэффициенты (D = 4 - 12 = -8)
+        ],
+    )
+    @pytest.mark.benchmark
+    def test_discriminant_calculation(self, benchmark, a, b, c):
+        """Бенчмарк вычислений"""
+
+        def benchfunc():
+            return discriminant(a, b, c)
+
+        benchmark(benchfunc)
 
     # Тесты для numpy чисел
     def test_numpy_input(self):
@@ -266,9 +288,7 @@ class TestIntegralAverage:
             return np.sin(x) + np.cos(x)
 
         result, error = integral_average(complex_func, (0, np.pi / 2))
-        expected = (-np.cos(np.pi / 2) + np.sin(np.pi / 2) + np.cos(0) - np.sin(0)) / (
-            np.pi / 2
-        )
+        expected = (-np.cos(np.pi / 2) + np.sin(np.pi / 2) + np.cos(0) - np.sin(0)) / (np.pi / 2)
         assert abs(result - expected) < 1e-10
         assert error <= self.maxError
 
