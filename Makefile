@@ -102,5 +102,6 @@ clean:
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name "*.pyo" -delete
 	find . -type f -name "*.out" -delete
+	find . -type f -name "*.test" -delete
 	rm -rf .coverage htmlcov
 	go clean -testcache -modcache
