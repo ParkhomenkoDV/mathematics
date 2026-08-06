@@ -23,7 +23,7 @@ type interval struct {
 func adaptiveSimpson(
 	f func(float64) float64,
 	a, b,
-	epsabs, epsrel float64,
+	epsAbs, epsRel float64,
 	limit int) (Result, error) {
 	if limit <= 0 {
 		return Result{}, ErrNegativeLimit
@@ -64,7 +64,7 @@ func adaptiveSimpson(
 		stack = stack[:idx]
 
 		// Проверяем, можно ли остановиться на этом интервале
-		tol := epsabs + epsrel*math.Abs(it.S)
+		tol := epsAbs + epsRel*math.Abs(it.S)
 		if it.absErr <= tol || intervalsUsed+1 >= limit {
 			// Принимаем текущее приближение
 			total += it.S

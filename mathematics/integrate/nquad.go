@@ -20,7 +20,7 @@ func NQuad(
 	f Func,
 	ranges []Range,
 	args []float64,
-	epsabs, epsrel float64,
+	epsAbs, epsRel float64,
 	limit int,
 ) (Result, error) {
 	// Validate ranges
@@ -55,7 +55,7 @@ func NQuad(
 		}
 
 		// Perform 1D adaptive integration
-		result, err := adaptiveSimpson(integrand, a, b, epsabs, epsrel, limit)
+		result, err := adaptiveSimpson(integrand, a, b, epsAbs, epsRel, limit)
 		if err != nil {
 			return result, err
 		}
